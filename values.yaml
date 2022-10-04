@@ -1,0 +1,75 @@
+nameOverride: ""
+fullnameOverride: ""
+namespace: defaule
+replicaCount: 1
+
+image:
+  repository: postgres
+  pullPolicy: IfNotPresent
+  tag: 14.5-bullseye
+
+podSecurityContext: 
+  fsGroup: 1000
+
+lifecycle: {}
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+
+service:
+  type: ClusterIP
+  port: 5432
+
+dataBase:
+  user: postgres
+  password: "password"
+  codeDatabase: postgres 
+
+
+config:
+  - name: POSTGRESQL_VOLUME_DIR
+    value: "/postgresql"
+  - name: PGDATA
+    value: "/postgresql/data"
+  - name: POSTGRESQL_LOG_HOSTNAME
+    value: "true"
+  - name: POSTGRESQL_LOG_CONNECTIONS
+    value: "false"
+  - name: POSTGRESQL_LOG_DISCONNECTIONS
+    value: "false"
+  - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+    value: "off"
+  - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+    value: "error"
+  - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+    value: "pgaudit, repmgr"
+  - name: POSTGRESQL_ENABLE_TLS
+    value: "no"
+
+job:
+  enabled: true
+  init:
+    newDatabase: test
+    newUser: test
+    newUserPassword: "test"
