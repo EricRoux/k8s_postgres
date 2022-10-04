@@ -45,6 +45,10 @@ spec:
             - name: POSTGRES_DB
               value: {{ .Values.dataBase.coreDatabase }}
             {{- toYaml .Values.config | nindent 12 }}
+            {{- if .Values.timeZone }}
+            - name: TZ
+              value: {{ .Values.timeZone }}
+            {{- end }}
           ports:
             - name: {{ include "postgres.fullname" . }}
               containerPort: 5432

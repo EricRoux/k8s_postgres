@@ -2,6 +2,8 @@ nameOverride: ""
 fullnameOverride: ""
 namespace: defaule
 replicaCount: 1
+timeZone: "Europe/London"
+
 
 image:
   repository: postgres

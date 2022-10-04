@@ -23,8 +23,16 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
+{{- define "postgres.serviceName" -}}
+{{ printf "%s-%s" (include "postgres.fullname" .) "service" }}
+{{- end -}}
+
 {{- define "postgres.secretName" -}}
 {{ printf "%s-%s" (include "postgres.fullname" .) "secret" }}
+{{- end -}}
+
+{{- define "postgres.jobName" -}}
+{{ printf "%s-%s" (include "postgres.fullname" .) "job" }}
 {{- end -}}
 
 {{/*

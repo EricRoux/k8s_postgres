@@ -1,0 +1,53 @@
+{{- if .Values.job.enabled -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "postgres.jobName" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "postgres.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      name: {{ include "postgres.jobName" . }}
+      labels:
+        {{- include "postgres.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ include "postgres.jobName" . }}
+        image: {{ .Values.image.repository -}} : {{- .Values.image.tag }}
+        command: [
+          'sh', '-c', 
+          'PGPASSWORD=$POSTGRES_PASSWORD psql -w -U "$POSTGRES_USER" -d "$POSTGRES_DB"  -h "$POSTGRES_HOST"',
+          '-c "create database $NEW_DB"',
+          '-c "create user $NEW_USER with encrypted password \"$NEW_PASSWORD\""',
+          '-c "grant all privileges on database $NEW_DB to $NEW_USER;"'
+        ]
+        env:
+          - name: POSTGRES_HOST
+            value: '{{ include "postgres.serviceName" . }}'
+          - name: POSTGRES_DB
+            value: {{ .Values.dataBase.coreDatabase }}
+          - name: POSTGRES_USER
+            value: {{ .Values.dataBase.user }}
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "postgres.secretName" . }}
+                key: postgresql-password
+          - name: NEW_DB
+            value: {{ .Values.job.init.newDatabase }}
+          - name: NEW_USER
+            value: {{ .Values.job.init.newUser }}
+          - name: NEW_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "postgres.secretName" . }}
+                key: new-postgresql-password
+          {{- if .Values.timeZone }}
+          - name: TZ
+            value: {{ .Values.timeZone }}
+          {{- end }}
+      restartPolicy: OnFailure
+      dnsPolicy: ClusterFirst
+{{- end -}}
