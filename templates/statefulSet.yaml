@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  labels:
+    {{- include "postgres.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "postgres.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "postgres.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "postgres.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ include "postgres.fullname" . }}
+        {{- with .Values.lifecycle }}
+          lifecycle:
+          {{- toYaml . | indent 10 }}
+        {{- end }}
+          image: {{ .Values.image.repository -}} : {{- .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext  }}
+          securityContext:
+            {{- toYaml .| nindent 12 }}
+          {{- end }}
+          env:
+            # PostgreSQL configuration
+            - name: POSTGRES_USER
+              value: {{ .Values.dataBase.user }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.secretName" . }}
+                  key: postgresql-password
+            - name: POSTGRES_DB
+              value: {{ .Values.dataBase.coreDatabase }}
+            {{- toYaml .Values.config | nindent 12 }}
+          ports:
+            - name: {{ include "postgres.fullname" . }}
+              containerPort: 5432
+              protocol: TCP
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}            
+          {{- end }}
+          livenessProbe:
+            exec:
+              command:
+                - bash
+                - -ec
+                - 'PGPASSWORD=$POSTGRES_PASSWORD psql -w -U "postgres" -d "postgres"  -h 127.0.0.1 -c "SELECT 1"'
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - bash
+                - -ec
+                - 'PGPASSWORD=$POSTGRES_PASSWORD psql -w -U "postgres" -d "postgres"  -h 127.0.0.1 -c "SELECT 1"'
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
