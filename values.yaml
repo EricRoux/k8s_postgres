@@ -70,8 +70,8 @@ config:
     value: "no"
 
 job:
-  enabled: true
-  init:
-    newDatabase: test
-    newUser: test
-    newUserPassword: "test"
+  enabled: false
+  # init:
+  #   newDatabase: test
+  #   newUser: test
+  #   newUserPassword: "test"
