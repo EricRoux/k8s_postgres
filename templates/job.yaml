@@ -27,9 +27,9 @@ spec:
           - name: POSTGRES_HOST
             value: '{{ include "postgres.serviceName" . }}'
           - name: POSTGRES_DB
-            value: {{ .Values.dataBase.coreDatabase }}
+            value: "{{ .Values.dataBase.coreDatabase }}"
           - name: POSTGRES_USER
-            value: {{ .Values.dataBase.user }}
+            value: "{{ .Values.dataBase.user }}"
           - name: POSTGRES_PASSWORD
             valueFrom:
               secretKeyRef:

@@ -46,7 +46,7 @@ service:
 dataBase:
   user: postgres
   password: "password"
-  codeDatabase: postgres 
+  coreDatabase: postgres 
 
 
 config:
