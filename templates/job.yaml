@@ -1,4 +1,5 @@
 {{- if .Values.job.enabled -}}
+{{ $secretName := (include "postgres.secretName" .)}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -21,9 +22,15 @@ spec:
           - -ec
           - >-
             PGPASSWORD=$POSTGRES_PASSWORD psql -w -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h "$POSTGRES_HOST" 
-            -c "create database $NEW_DB;" 
-            -c "create user $NEW_USER with encrypted password '$NEW_PASSWORD';" 
-            -c "grant all privileges on database $NEW_DB to $NEW_USER;"
+          {{- range $elm := (.Values.job.init.databases) }}
+            -c "create database {{ printf "$DB_%s" $elm.name}};"
+          {{- end }} 
+          {{- range $elm := (.Values.job.init.users) }}
+            -c "create user {{ printf "$USER_%s with encrypted password '$PASSWORD_%s'" $elm.user $elm.user}};" 
+          {{- end }} 
+          {{- range $elm := (.Values.job.init.databases) }}
+            -c "grant all privileges on database {{ printf "$DB_%s to $USER_%s" $elm.name $elm.user}};"
+          {{- end }} 
         env:
           - name: POSTGRES_HOST
             value: '{{ include "postgres.serviceName" . }}'
@@ -34,17 +41,21 @@ spec:
           - name: POSTGRES_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ include "postgres.secretName" . }}
+                name: {{ $secretName }}
                 key: postgresql-password
-          - name: NEW_DB
-            value: {{ .Values.job.init.newDatabase }}
-          - name: NEW_USER
-            value: {{ .Values.job.init.newUser }}
-          - name: NEW_PASSWORD
+          {{- range $elm := (.Values.job.init.users) }}
+          - name: {{ printf "USER_%s" $elm.user}}
+            value: {{ printf "%s" $elm.user}}
+          - name: {{ printf "PASSWORD_%s" $elm.user}}
             valueFrom:
               secretKeyRef:
-                name: {{ include "postgres.secretName" . }}
-                key: new-postgresql-password
+                name: {{ $secretName }}
+                key: {{ printf "%s" $elm.user}}
+          {{- end }}
+          {{- range $elm := (.Values.job.init.databases) }}
+          - name: {{ printf "DB_%s" $elm.name}}
+            value: {{ printf "%s" $elm.name}}
+          {{- end }}        
           {{- if .Values.timeZone }}
           - name: TZ
             value: {{ .Values.timeZone }}

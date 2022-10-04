@@ -14,6 +14,11 @@ podSecurityContext:
   fsGroup: 1000
 
 lifecycle: {}
+  # postStart:
+  #   exec:
+  #     command:
+  #       - >-
+  #         echo "Test";
 
 securityContext: {}
   # capabilities:
@@ -71,7 +76,10 @@ config:
 
 job:
   enabled: false
-  # init:
-  #   newDatabase: test
-  #   newUser: test
-  #   newUserPassword: "test"
+  # init: 
+  #   users: 
+  #     - user: user1
+  #       password: user1_password
+  #   databases:
+  #     - name: db1
+  #       user: user1
