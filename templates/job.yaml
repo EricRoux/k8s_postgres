@@ -16,13 +16,14 @@ spec:
       containers:
       - name: {{ include "postgres.jobName" . }}
         image: {{ .Values.image.repository -}} : {{- .Values.image.tag }}
-        command: [
-          'sh', '-c', 
-          'PGPASSWORD=$POSTGRES_PASSWORD psql -w -U "$POSTGRES_USER" -d "$POSTGRES_DB"  -h "$POSTGRES_HOST"',
-          '-c "create database $NEW_DB"',
-          '-c "create user $NEW_USER with encrypted password \"$NEW_PASSWORD\""',
-          '-c "grant all privileges on database $NEW_DB to $NEW_USER;"'
-        ]
+        command:
+          - bash
+          - -ec
+          - >-
+            PGPASSWORD=$POSTGRES_PASSWORD psql -w -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h "$POSTGRES_HOST" 
+            -c "create database $NEW_DB;" 
+            -c "create user $NEW_USER with encrypted password '$NEW_PASSWORD';" 
+            -c "grant all privileges on database $NEW_DB to $NEW_USER;"
         env:
           - name: POSTGRES_HOST
             value: '{{ include "postgres.serviceName" . }}'
