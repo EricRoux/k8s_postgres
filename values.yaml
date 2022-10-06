@@ -83,3 +83,4 @@ job:
   #   databases:
   #     - name: db1
   #       user: user1
+  #       schema: schema1
